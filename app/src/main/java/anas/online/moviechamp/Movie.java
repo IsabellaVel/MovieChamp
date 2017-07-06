@@ -1,8 +1,23 @@
 package anas.online.moviechamp;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.google.gson.annotations.SerializedName;
 
-public class Movie {
+public class Movie implements Parcelable {
+    @SuppressWarnings("unused")
+    public static final Parcelable.Creator<Movie> CREATOR = new Parcelable.Creator<Movie>() {
+        @Override
+        public Movie createFromParcel(Parcel in) {
+            return new Movie(in);
+        }
+
+        @Override
+        public Movie[] newArray(int size) {
+            return new Movie[size];
+        }
+    };
     @SerializedName("id")
     private Integer id;
     @SerializedName("title")
@@ -27,6 +42,16 @@ public class Movie {
         this.title = title;
         this.backdropPath = backdropPath;
         this.voteAverage = voteAverage;
+    }
+
+    protected Movie(Parcel in) {
+        id = in.readByte() == 0x00 ? null : in.readInt();
+        title = in.readString();
+        posterPath = in.readString();
+        backdropPath = in.readString();
+        overview = in.readString();
+        releaseDate = in.readString();
+        voteAverage = in.readByte() == 0x00 ? null : in.readDouble();
     }
 
     public String getPosterPath() {
@@ -55,5 +80,31 @@ public class Movie {
 
     public Double getVoteAverage() {
         return voteAverage;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        if (id == null) {
+            dest.writeByte((byte) (0x00));
+        } else {
+            dest.writeByte((byte) (0x01));
+            dest.writeInt(id);
+        }
+        dest.writeString(title);
+        dest.writeString(posterPath);
+        dest.writeString(backdropPath);
+        dest.writeString(overview);
+        dest.writeString(releaseDate);
+        if (voteAverage == null) {
+            dest.writeByte((byte) (0x00));
+        } else {
+            dest.writeByte((byte) (0x01));
+            dest.writeDouble(voteAverage);
+        }
     }
 }

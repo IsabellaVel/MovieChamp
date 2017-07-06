@@ -2,7 +2,6 @@ package anas.online.moviechamp;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -77,7 +76,7 @@ class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapterViewHol
      * The interface that receives onClick messages.
      */
     public interface MovieAdapterOnClickHandler {
-        void onClick(int id);
+        void onClick(Movie movie);
     }
 
     /**
@@ -107,9 +106,8 @@ class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapterViewHol
         public void onClick(View v) {
             int adapterPosition = getAdapterPosition();
             Movie movie = mMovies.get(adapterPosition);
-            int movieId = movie.getId();
-            mClickHandler.onClick(movieId);
-            Log.v("MovieAdapter", "Movie: " + movieId);
+            //int movieId = movie.getId();
+            mClickHandler.onClick(movie);
         }
 
     }

@@ -1,5 +1,6 @@
 package anas.online.moviechamp;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -42,7 +43,6 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         mRecyclerView = (RecyclerView) findViewById(R.id.movies_recycler_view);
 
         setupGridLayout();
-        final MovieAdapter.MovieAdapterOnClickHandler listener = this;
 
         loadMovies("popular");
 
@@ -142,7 +142,11 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     }
 
     @Override
-    public void onClick(int id) {
+    public void onClick(Movie movie) {
+
+        Intent movieDetailIntent = new Intent(MainActivity.this, DetailActivity.class);
+        movieDetailIntent.putExtra("EXTRA_MOVIE", movie);
+        startActivity(movieDetailIntent);
 
     }
 }
