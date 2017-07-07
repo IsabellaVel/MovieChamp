@@ -1,6 +1,8 @@
 package anas.online.moviechamp.rest;
 
 import anas.online.moviechamp.MovieResponse;
+import anas.online.moviechamp.Review;
+import anas.online.moviechamp.Video;
 import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Path;
@@ -20,4 +22,10 @@ public interface ApiInterface {
 
     @GET("movie/{id}")
     Call<MovieResponse> getMovieDetails(@Path("id") int id, @Query("api_key") String apiKey);
+
+    @GET("movie/{id}/reviews")
+    Call<Review> getMovieReviews(@Path("id") int id, @Query("api_key") String apiKey);
+
+    @GET("movie/{id}/videos")
+    Call<Video> getMovieVideos(@Path("id") int id, @Query("api_key") String apiKey);
 }
