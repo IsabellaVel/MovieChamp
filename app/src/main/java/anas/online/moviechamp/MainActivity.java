@@ -1,6 +1,9 @@
 package anas.online.moviechamp;
 
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -10,11 +13,16 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import java.util.List;
 
 import anas.online.moviechamp.rest.ApiInterface;
 import anas.online.moviechamp.rest.RetrofitClient;
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -28,6 +36,10 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     private static final int MOVIE_LOADER_ID = 1; // Constant value for the Movie loader ID.
     RecyclerView mRecyclerView;
     ApiInterface apiService = RetrofitClient.getClient().create(ApiInterface.class);
+    @BindView(R.id.tv_error_message_display)
+    TextView mErrorMessageDisplay;
+    @BindView(R.id.pb_loading_indicator)
+    ProgressBar mLoadingIndicator;
     private Call<Movie> call;
     private Movie movie;
     private List<Movie> mMovies;
@@ -40,11 +52,15 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        ButterKnife.bind(this);
+
+        mLoadingIndicator.setVisibility(View.VISIBLE);
         mRecyclerView = (RecyclerView) findViewById(R.id.movies_recycler_view);
 
         setupGridLayout();
 
         loadMovies("popular");
+
 
     }
 
@@ -62,11 +78,13 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
                     mMovieAdapter = new MovieAdapter(mMovies, R.layout.item_movie, getApplicationContext(), mListener);
                     mRecyclerView.setAdapter(mMovieAdapter);
                     mRecyclerView.setHasFixedSize(true);
+                    mLoadingIndicator.setVisibility(View.GONE);
                 }
 
                 @Override
                 public void onFailure(Call<MovieResponse> call, Throwable error) {
                     // Log error here since request failed
+                    showErrorMessage();
                     Log.e("ERROR", error.toString());
                 }
             });
@@ -92,9 +110,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
                 }
             });
         }
-
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -148,5 +164,20 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         movieDetailIntent.putExtra("EXTRA_MOVIE", movie);
         startActivity(movieDetailIntent);
 
+    }
+
+    private void showErrorMessage() {
+        mLoadingIndicator.setVisibility(View.GONE);
+        mErrorMessageDisplay.setVisibility(View.VISIBLE);
+    }
+
+    private boolean networkConnected() {
+        // Get a reference to the ConnectivityManager to check state of network connectivity.
+        ConnectivityManager connMgr = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
+        // Get details on the currently active default data network
+        NetworkInfo networkStatus = connMgr.getActiveNetworkInfo();
+
+        // If network is available then return true, else, false is returned
+        return (networkStatus != null && networkStatus.isConnected());
     }
 }

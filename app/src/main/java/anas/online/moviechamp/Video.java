@@ -15,9 +15,6 @@ public class Video {
     @SerializedName("key")
     @Expose
     private String key;
-    @SerializedName("name")
-    @Expose
-    private String name;
 
     public String getId() {
         return id;
@@ -25,10 +22,6 @@ public class Video {
 
     public String getKey() {
         return key;
-    }
-
-    public String getName() {
-        return name;
     }
 
     public List<Video> getVideosList() {

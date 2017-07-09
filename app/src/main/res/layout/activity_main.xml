@@ -16,7 +16,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:padding="16dp"
-        android:text="Error"
+        android:text="@string/no_connection_error"
         android:textSize="20sp"
         android:visibility="invisible" />
 

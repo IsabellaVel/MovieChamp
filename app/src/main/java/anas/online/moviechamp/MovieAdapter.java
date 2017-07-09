@@ -25,7 +25,6 @@ class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapterViewHol
       * said interface. We store that instance in this variable to call the onClick method whenever
       * an item is clicked in the list.
       */
-    // final private MovieAdapterOnClickHandler mClickHandler;
 
     public MovieAdapter(List<Movie> movies, int rowLayout, Context context,
                         MovieAdapterOnClickHandler clickHandler) {
@@ -106,7 +105,6 @@ class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapterViewHol
         public void onClick(View v) {
             int adapterPosition = getAdapterPosition();
             Movie movie = mMovies.get(adapterPosition);
-            //int movieId = movie.getId();
             mClickHandler.onClick(movie);
         }
 

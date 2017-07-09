@@ -1,11 +1,14 @@
 package anas.online.moviechamp;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -22,11 +25,12 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 
-public class DetailActivity extends AppCompatActivity {
+public class DetailActivity extends AppCompatActivity implements VideoAdapter.VideoAdapterOnClickHandler {
 
     private static final String BASE_IMAGE_URL = "http://image.tmdb.org/t/p/";
     private static final String POSTER_SIZE = "w185";
     private static final String BACKDROP_SIZE = "w780";
+    private final String BASE_YOUTUBE_URL = "http://www.youtube.com/watch?v=";
     ApiInterface apiService = RetrofitClient.getClient().create(ApiInterface.class);
     int mMovieId;
     @BindView(R.id.tv_title)
@@ -45,12 +49,16 @@ public class DetailActivity extends AppCompatActivity {
     TextView rating;
     @BindView(R.id.fab_favorite)
     FloatingActionButton fab_favorite;
+    @BindView(R.id.tv_no_reviews_message)
+    TextView noReviewsMessage;
+    private VideoAdapter.VideoAdapterOnClickHandler mListener = this;
     private List<Review> mReviews;
     private List<Video> mVideos;
     private ReviewAdapter mReviewAdapter;
     private VideoAdapter mVideoAdapter;
     private RecyclerView mVideosRecyclerView;
     private RecyclerView mReviewRecyclerView;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,7 +86,6 @@ public class DetailActivity extends AppCompatActivity {
 
         mMovieId = mMovieData.getId();
 
-
         ApiInterface apiService = RetrofitClient.getClient().create(ApiInterface.class);
 
         loadReviews();
@@ -95,7 +102,7 @@ public class DetailActivity extends AppCompatActivity {
             public void onResponse(Call<Video> call, Response<Video> response) {
                 mVideos = response.body().getVideosList();
 
-                mVideoAdapter = new VideoAdapter(mVideos, R.layout.item_trailer, getApplicationContext());
+                mVideoAdapter = new VideoAdapter(mVideos, R.layout.item_trailer, getApplicationContext(), mListener);
                 mVideosRecyclerView.setAdapter(mVideoAdapter);
                 mVideosRecyclerView.setHasFixedSize(false);
                 mVideosRecyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext(), LinearLayoutManager.HORIZONTAL, false));
@@ -120,10 +127,15 @@ public class DetailActivity extends AppCompatActivity {
                 mReviews = response.body().getReviewsList();
 
                 mReviewAdapter = new ReviewAdapter(mReviews, R.layout.item_review, getApplicationContext());
-                mReviewRecyclerView.setAdapter(mReviewAdapter);
-                mReviewRecyclerView.setHasFixedSize(false);
-                mReviewRecyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext(), LinearLayoutManager.VERTICAL, false));
-
+                if (mReviewAdapter.getItemCount() > 0) {
+                    mReviewRecyclerView.setAdapter(mReviewAdapter);
+                    mReviewRecyclerView.setHasFixedSize(false);
+                    mReviewRecyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext(), LinearLayoutManager.VERTICAL, false));
+                    mReviewRecyclerView.addItemDecoration(new SimpleDividerItemDecoration(getApplicationContext()));
+                    mReviewRecyclerView.setNestedScrollingEnabled(false);
+                } else {
+                    noReviewsMessage.setVisibility(View.VISIBLE);
+                }
             }
 
             @Override
@@ -132,6 +144,14 @@ public class DetailActivity extends AppCompatActivity {
                 Log.e("ERROR", error.toString());
             }
         });
+    }
+
+    @Override
+    public void onClick(String trailerKey) {
+
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(BASE_YOUTUBE_URL + trailerKey));
+        startActivity(intent);
+
     }
 
 }
