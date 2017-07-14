@@ -3,8 +3,10 @@
     package="anas.online.moviechamp">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
+        android:name=".MovieChamp"
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -18,7 +20,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".DetailActivity"></activity>
+        <activity android:name=".DetailActivity" />
+
+        <provider
+            android:name=".data.MovieProvider"
+            android:authorities="anas.online.moviechamp"
+            android:exported="false"
+            android:syncable="true" />
+
+        <activity android:name=".FavoritesActivity"></activity>
     </application>
 
 </manifest>

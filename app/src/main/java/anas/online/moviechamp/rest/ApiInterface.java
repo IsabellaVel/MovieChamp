@@ -3,10 +3,12 @@ package anas.online.moviechamp.rest;
 import anas.online.moviechamp.MovieResponse;
 import anas.online.moviechamp.Review;
 import anas.online.moviechamp.Video;
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
+import retrofit2.http.Url;
 
 /**
  * Define the API endpoints. This interface contains methods we are going to use to execute HTTP
@@ -28,4 +30,7 @@ public interface ApiInterface {
 
     @GET("movie/{id}/videos")
     Call<Video> getMovieVideos(@Path("id") int id, @Query("api_key") String apiKey);
+
+    @GET
+    Call<ResponseBody> downloadImage(@Url String imagePath);
 }
