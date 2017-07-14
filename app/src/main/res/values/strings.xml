@@ -3,6 +3,7 @@
 
     <string name="menu_popular">Popular</string>
     <string name="menu_top_rated">Top Rated</string>
+    <string name="menu_favorites">Favorites</string>
 
     <string name="plot_label">Plot</string>
     <string name="fake_plot_content">An Amazon princess comes to the world of Man to become the greatest of the female superheroes.</string>

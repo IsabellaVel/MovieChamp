@@ -2,9 +2,13 @@ package anas.online.moviechamp;
 
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
@@ -19,6 +23,7 @@ import android.widget.TextView;
 
 import java.util.List;
 
+import anas.online.moviechamp.data.MovieContract;
 import anas.online.moviechamp.rest.ApiInterface;
 import anas.online.moviechamp.rest.RetrofitClient;
 import butterknife.BindView;
@@ -27,11 +32,22 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class MainActivity extends AppCompatActivity implements MovieAdapter.MovieAdapterOnClickHandler {
+public class MainActivity extends AppCompatActivity implements MovieAdapter.MovieAdapterOnClickHandler,
+        LoaderManager.LoaderCallbacks<Cursor> {
 
+    public static final String[] FAVORITES_PROJECTION = {
+            MovieContract.FavoritesEntry.COLUMN_EXTERNAL_STORAGE_POSTER_PATH
+    };
+    /*
+    * We store the indices of the values in the array of Strings above to more quickly be able to
+    * access the data from our query. If the order of the Strings above changes, these indices
+    * must be adjusted to match the order of the Strings.
+    */
+    public static final int INDEX_MOVIE_EXTERNAL_STORAGE_POSTER_PATH = 0;
     private static final String BASE_URL = "http://api.themoviedb.org/3/";
     private final static String API_KEY = BuildConfig.TMDB_API_KEY;
-
+    // This ID is for the cursor loader that loads favorites data from DB
+    private static final int CURSOR_MOVIE_LOADER_ID = 1;
     private final static String LOG_TAG = MainActivity.class.getSimpleName();
     private static final int MOVIE_LOADER_ID = 1; // Constant value for the Movie loader ID.
     RecyclerView mRecyclerView;
@@ -46,6 +62,8 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     private MovieAdapter mMovieAdapter;
     private MovieAdapter.MovieAdapterOnClickHandler mListener = this;
     private String mSortBy;
+    private int mPosition = RecyclerView.NO_POSITION;
+    private Cursor mCursor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,7 +128,12 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
                 }
             });
         }
+
+        if (sortBy.equals("favorites")) {
+            getSupportLoaderManager().initLoader(MOVIE_LOADER_ID, null, this);
+        }
     }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -144,6 +167,16 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
 
                 loadMovies("popular");
                 return true;
+
+            case R.id.sort_by_favorites:
+                item.setChecked(true);
+                if (actionBar != null) {
+                    actionBar.setTitle("Favorites");
+                }
+
+                loadMovies("favorites");
+                return true;
+
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -179,5 +212,49 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
 
         // If network is available then return true, else, false is returned
         return (networkStatus != null && networkStatus.isConnected());
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int loaderId, Bundle bundle) {
+        switch (loaderId) {
+            case CURSOR_MOVIE_LOADER_ID:
+                return new CursorLoader(
+                        this,
+                        MovieContract.FavoritesEntry.CONTENT_URI,
+                        FAVORITES_PROJECTION,
+                        null,
+                        null,
+                        null);
+            default:
+                throw new RuntimeException("Loader Not Implemented: " + loaderId);
+        }
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        mMovieAdapter.swapCursor(data);
+        // Return to same scrolling position on orientation change
+        //  if (mPosition == RecyclerView.NO_POSITION) mPosition = 0;
+        //  mRecyclerView.smoothScrollToPosition(mPosition);
+        if (data.getCount() != 0) showMovieDataView();
+
+        // mLoadingIndicator.setVisibility(View.GONE);
+
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        mMovieAdapter.swapCursor(null);
+    }
+
+    /**
+     * This method will make the View for the movie data visible and
+     * hide the error message
+     */
+    public void showMovieDataView() {
+        // First, make sure the error is invisible.
+        mErrorMessageDisplay.setVisibility(View.INVISIBLE);
+        // Then, make sure the movie data is visible.
+        mRecyclerView.setVisibility(View.VISIBLE);
     }
 }

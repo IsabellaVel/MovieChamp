@@ -1,6 +1,7 @@
 package anas.online.moviechamp;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,7 +10,10 @@ import android.widget.ImageView;
 
 import com.squareup.picasso.Picasso;
 
+import java.io.File;
 import java.util.List;
+
+import static anas.online.moviechamp.MainActivity.INDEX_MOVIE_EXTERNAL_STORAGE_POSTER_PATH;
 
 class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapterViewHolder> {
 
@@ -18,6 +22,15 @@ class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapterViewHol
     private List<Movie> mMovies;
     private MovieAdapterOnClickHandler mClickHandler;
     private int mRowLayout;
+
+    private Cursor mCursor;
+
+    /*We need to load data from two different sources. We have two cases: We either load live data
+    from the API for the Popular and Top Rated movies or we load data from the
+    database (cursor) for the Favorites. This boolean is used to tell our adapter from which source does it have
+    to load data*/
+    private boolean mLoadfromCursor;
+
 
      /*
       * Below, we've defined an interface to handle clicks on items within this Adapter. In the
@@ -34,6 +47,11 @@ class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapterViewHol
         mClickHandler = clickHandler;
     }
 
+    public MovieAdapter(Context context, Cursor cursor) {
+        mContext = context;
+        mCursor = cursor;
+    }
+
     @Override
     public MovieAdapterViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater
@@ -48,27 +66,56 @@ class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapterViewHol
     @Override
     public void onBindViewHolder(MovieAdapterViewHolder holder, int position) {
 
-        Movie movie = mMovies.get(position);
+        if (!mLoadfromCursor) {
 
-        String posterPath = movie.getPosterPath();
+            Movie movie = mMovies.get(position);
 
-        String fullImagePath = "http://image.tmdb.org/t/p/w342" + posterPath;
+            String posterPath = movie.getPosterPath();
 
-        Picasso.with(mContext).load(fullImagePath).into(holder.poster);
+            String fullImagePath = "http://image.tmdb.org/t/p/w342" + posterPath;
+
+            Picasso.with(mContext).load(fullImagePath).into(holder.poster);
+        } else {
+            // We are loading data from the cursor (database)
+            mCursor.moveToPosition(position);
+
+            // Read poster path from the cursor
+            String localPosterPath = mCursor.getString(INDEX_MOVIE_EXTERNAL_STORAGE_POSTER_PATH);
+            Picasso.with(mContext)
+                    .load(new File(localPosterPath))
+                    .into(holder.poster);
+        }
 
     }
 
     @Override
     public int getItemCount() {
-        if (mMovies == null) {
-            return -1;
+        if (!mLoadfromCursor) {
+            if (mMovies == null) {
+                return -1;
+            }
+            return mMovies.size();
+        } else {
+            if (mCursor == null) {
+                return 0;
+            }
+            return mCursor.getCount();
         }
-        return mMovies.size();
     }
 
     public void swapList(List<Movie> movies) {
         mMovies = movies;
         notifyDataSetChanged();
+    }
+
+    void swapCursor(Cursor newCursor) {
+        mLoadfromCursor = true;
+        mCursor = newCursor;
+        notifyDataSetChanged();
+    }
+
+    public Cursor getCursor() {
+        return mCursor;
     }
 
     /**
