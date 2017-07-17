@@ -95,14 +95,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if (savedInstanceState != null) {
 
-            mMovies = savedInstanceState.getParcelableArrayList("movieData");
-
-        } else {
-
-            mMovies = new ArrayList<>();
-        }
 
         SharedPreferences prefs = getSharedPreferences("sort", MODE_PRIVATE);
         editor = prefs.edit();
@@ -112,7 +105,18 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         mRecyclerView = (RecyclerView) findViewById(R.id.movies_recycler_view);
         setupGridLayout();
 
-        loadMovies("popular");
+        if (savedInstanceState != null) {
+
+            mMovies = savedInstanceState.getParcelableArrayList("movieData");
+            mMovieAdapter = new MovieAdapter(mMovies, R.layout.item_movie, getApplicationContext(), mListener);
+            mRecyclerView.setAdapter(mMovieAdapter);
+            mMovieAdapter.swapList(mMovies);
+
+        } else {
+
+            mMovies = new ArrayList<>();
+            loadMovies("popular");
+        }
 
 
     }
