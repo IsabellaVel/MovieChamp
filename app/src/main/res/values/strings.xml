@@ -18,4 +18,9 @@
     <string name="pref_order_by_key">order_by</string>
     <string name="pref_order_by_default">popular</string>
 
+    <string name="fav_offline_mode">Trailers &amp; Reviews are available when Internet is connected</string>
+
+    <string name="movie_delete_failed">Failed to delete movie from favorites</string>
+    <string name="movie_delete_success">Removed from favorites!</string>
+
 </resources>

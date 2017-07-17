@@ -2,6 +2,7 @@ package anas.online.moviechamp;
 
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -31,6 +32,7 @@ import retrofit2.Response;
 
 public class FavoriteDetailActivity extends AppCompatActivity implements VideoAdapter.VideoAdapterOnClickHandler {
 
+    private static final int MOVIE_LOADER_ID = 1;
     static Movie mMovieData;
     private final String BASE_YOUTUBE_URL = "http://www.youtube.com/watch?v=";
     int mMovieId;
@@ -48,8 +50,8 @@ public class FavoriteDetailActivity extends AppCompatActivity implements VideoAd
     TextView releaseDate;
     @BindView(R.id.tv_rating)
     TextView rating;
-    @BindView(R.id.fab_favorite)
-    FloatingActionButton fab_favorite;
+    @BindView(R.id.fab_favorites_remove)
+    FloatingActionButton removeFavorite;
     @BindView(R.id.tv_no_reviews_message)
     TextView noReviewsMessage;
     ApiInterface apiService = RetrofitClient.getClient().create(ApiInterface.class);
@@ -60,6 +62,8 @@ public class FavoriteDetailActivity extends AppCompatActivity implements VideoAd
     private RecyclerView mVideosRecyclerView;
     private RecyclerView mReviewRecyclerView;
     private VideoAdapter.VideoAdapterOnClickHandler mListener = this;
+    private Cursor mCursor;
+    private Uri mMovieUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,6 +76,11 @@ public class FavoriteDetailActivity extends AppCompatActivity implements VideoAd
         mVideosRecyclerView = (RecyclerView) findViewById(R.id.rv_trailers);
 
         mMovieData = getIntent().getExtras().getParcelable("EXTRA_MOVIE");
+        String movieUriString = getIntent().getExtras().getString("MOVIE_URI");
+
+        mMovieUri = Uri.parse(movieUriString);
+
+        //Log.v("TAG", mMovieUri.toString());
 
         title.setText(mMovieData.getTitle());
         plot.setText(mMovieData.getOverview());
@@ -93,8 +102,35 @@ public class FavoriteDetailActivity extends AppCompatActivity implements VideoAd
             loadTrailers();
 
         } else {
-            Toast.makeText(this, "You can view trailers and reviews when you're online",
-                    Toast.LENGTH_SHORT).show();
+            offlineMode();
+        }
+
+        removeFavorite.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                removeFromFavorites();
+            }
+        });
+
+    }
+
+    private void removeFromFavorites() {
+        if (mMovieUri != null) {
+            // Call the ContentResolver to delete the movie at the given content URI.
+            // Pass in null for the selection and selection args because the mMovieUri
+            // content URI already identifies the movie that we want.
+            int rowsDeleted = getContentResolver().delete(mMovieUri, null, null);
+
+            // Show a toast message depending on whether or not the delete was successful.
+            if (rowsDeleted == 0) {
+                // If no rows were deleted, then there was an error with the delete.
+                Toast.makeText(this, getString(R.string.movie_delete_failed),
+                        Toast.LENGTH_SHORT).show();
+            } else {
+                // Otherwise, the delete was successful and we can display a toast.
+                Toast.makeText(this, getString(R.string.movie_delete_success),
+                        Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
@@ -160,6 +196,13 @@ public class FavoriteDetailActivity extends AppCompatActivity implements VideoAd
 
     }
 
+    private void offlineMode() {
+        Toast.makeText(this, "You can view trailers and reviews when you're online",
+                Toast.LENGTH_LONG).show();
+        mReviewRecyclerView.setVisibility(View.GONE);
+        mVideosRecyclerView.setVisibility(View.GONE);
+    }
+
 
     private boolean networkConnected() {
         // Get a reference to the ConnectivityManager to check state of network connectivity.
@@ -170,4 +213,5 @@ public class FavoriteDetailActivity extends AppCompatActivity implements VideoAd
         // If network is available then return true, else, false is returned
         return (networkStatus != null && networkStatus.isConnected());
     }
+
 }

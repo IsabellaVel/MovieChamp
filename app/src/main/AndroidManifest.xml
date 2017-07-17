@@ -26,8 +26,7 @@
         <provider
             android:name=".data.MovieProvider"
             android:authorities="anas.online.moviechamp"
-            android:exported="false"
-            android:syncable="true" />
+            android:exported="false" />
 
         <activity android:name=".FavoriteDetailActivity"></activity>
     </application>

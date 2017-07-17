@@ -23,7 +23,7 @@ public class MovieProvider extends ContentProvider {
         // when a match is found.
 
         sUriMatcher.addURI(MovieContract.CONTENT_AUTHORITY, MovieContract.PATH_FAVORITES, FAVORITE_MOVIES);
-        sUriMatcher.addURI(MovieContract.CONTENT_AUTHORITY, MovieContract.PATH_FAVORITES + "/#", FAVORITE_MOVIE_ID);
+        sUriMatcher.addURI(MovieContract.CONTENT_AUTHORITY, MovieContract.PATH_FAVORITES + "/*", FAVORITE_MOVIE_ID);
 
     }
 
@@ -36,7 +36,7 @@ public class MovieProvider extends ContentProvider {
 
         // For each type of URI you want to add, create a corresponding code.
         matcher.addURI(authority, MovieContract.PATH_FAVORITES, FAVORITE_MOVIES);
-        matcher.addURI(authority, MovieContract.PATH_FAVORITES + "/#", FAVORITE_MOVIE_ID);
+        matcher.addURI(authority, MovieContract.PATH_FAVORITES + "/*", FAVORITE_MOVIE_ID);
         return matcher;
     }
 
@@ -135,6 +135,12 @@ public class MovieProvider extends ContentProvider {
             case FAVORITE_MOVIES:
                 rowsDeleted = db.delete(
                         MovieContract.FavoritesEntry.TABLE_NAME, selection, selectionArgs);
+                break;
+            case FAVORITE_MOVIE_ID:
+                // Delete a single row given by the ID in the URI
+                selection = MovieContract.FavoritesEntry._ID + "=?";
+                selectionArgs = new String[]{String.valueOf(ContentUris.parseId(uri))};
+                rowsDeleted = db.delete(MovieContract.FavoritesEntry.TABLE_NAME, selection, selectionArgs);
                 break;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);

@@ -1,11 +1,13 @@
 package anas.online.moviechamp;
 
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.LoaderManager;
@@ -40,6 +42,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         LoaderManager.LoaderCallbacks<Cursor> {
 
     public static final String[] FAVORITES_PROJECTION = {
+            MovieContract.FavoritesEntry._ID,
             MovieContract.FavoritesEntry.COLUMN_MOVIE_ID,
             MovieContract.FavoritesEntry.COLUMN_TITLE,
             MovieContract.FavoritesEntry.COLUMN_EXTERNAL_STORAGE_POSTER_PATH,
@@ -55,12 +58,13 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     */
 
     public static final int INDEX_ID = 0;
-    public static final int INDEX_TITLE = 1;
-    public static final int INDEX_MOVIE_EXTERNAL_STORAGE_POSTER_PATH = 2;
-    public static final int INDEX_OVERVIEW = 3;
-    public static final int INDEX_RELEASE_DATE = 4;
-    public static final int INDEX_EXTERNAL_STORAGE_BACKDROP_PATH = 5;
-    public static final int INDEX_VOTE_AVERAGE = 6;
+    public static final int INDEX_MOVIE_ID = 1;
+    public static final int INDEX_TITLE = 2;
+    public static final int INDEX_MOVIE_EXTERNAL_STORAGE_POSTER_PATH = 3;
+    public static final int INDEX_OVERVIEW = 4;
+    public static final int INDEX_RELEASE_DATE = 5;
+    public static final int INDEX_EXTERNAL_STORAGE_BACKDROP_PATH = 6;
+    public static final int INDEX_VOTE_AVERAGE = 7;
 
 
     private static final String BASE_URL = "http://api.themoviedb.org/3/";
@@ -232,7 +236,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     }
 
     @Override
-    public void onClick(Movie movie, int movieType) {
+    public void onClick(Movie movie, int movieType, int id) {
 
         if (movieType == 1) {
 
@@ -244,8 +248,11 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         } else {
             Intent intent = new Intent(MainActivity.this, FavoriteDetailActivity.class);
 
+            Uri movieUri = ContentUris.withAppendedId(MovieContract.FavoritesEntry.CONTENT_URI, id);
+
             // Put the Parcelable Movie object into an intent
             intent.putExtra("EXTRA_MOVIE", movie);
+            intent.putExtra("MOVIE_URI", movieUri.toString());
             startActivity(intent);
         }
 
