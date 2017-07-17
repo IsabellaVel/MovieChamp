@@ -149,7 +149,6 @@ public class DetailActivity extends AppCompatActivity implements VideoAdapter.Vi
             Toast.makeText(this, "Saved to favorites!", Toast.LENGTH_SHORT).show();
         }
 
-
     }
 
     public void downloadPosterImage(final String ExternalPosterPath) {
@@ -239,28 +238,6 @@ public class DetailActivity extends AppCompatActivity implements VideoAdapter.Vi
         }
     }
 
-/*    private static class SaveTask extends AsyncTask<Movie, Void, Void> {
-
-        ContentValues movieValues = new ContentValues();
-
-
-        @Override
-        protected Void doInBackground(Movie... movieData) {
-
-            movieValues.put(MovieContract.FavoritesEntry.COLUMN_MOVIE_ID, mMovieData.getId());
-            movieValues.put(MovieContract.FavoritesEntry.COLUMN_TITLE, mMovieData.getTitle());
-            movieValues.put(MovieContract.FavoritesEntry.COLUMN_BACKDROP_PATH, backdropPath);
-            movieValues.put(MovieContract.FavoritesEntry.COLUMN_OVERVIEW, overview);
-            movieValues.put(MovieContract.FavoritesEntry.COLUMN_POSTER_PATH, posterPath);
-            movieValues.put(MovieContract.FavoritesEntry.COLUMN_EXTERNAL_STORAGE_POSTER_PATH, localPosterPath );
-            movieValues.put(MovieContract.FavoritesEntry.COLUMN_EXTERNAL_STORAGE_BACKDROP_PATH, localBackdropPath );
-            movieValues.put(MovieContract.FavoritesEntry.COLUMN_RELEASE_DATE, releaseDate);
-            movieValues.put(MovieContract.FavoritesEntry.COLUMN_VOTE_AVERAGE, voteAverage);
-
-            return null;
-        }
-    }*/
-
     public void loadTrailers() {
         Call<Video> call = apiService.getMovieVideos(mMovieId, BuildConfig.TMDB_API_KEY);
 
@@ -321,5 +298,4 @@ public class DetailActivity extends AppCompatActivity implements VideoAdapter.Vi
         startActivity(intent);
 
     }
-
 }

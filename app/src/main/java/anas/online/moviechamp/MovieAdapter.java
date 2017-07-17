@@ -193,8 +193,6 @@ class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapterViewHol
                 mClickHandler.onClick(movie, MOVIE_TYPE_FAV, id);
 
             }
-
         }
-
     }
 }

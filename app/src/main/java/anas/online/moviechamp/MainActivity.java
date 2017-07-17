@@ -95,8 +95,6 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
-
         SharedPreferences prefs = getSharedPreferences("sort", MODE_PRIVATE);
         editor = prefs.edit();
 
@@ -107,17 +105,22 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
 
         if (savedInstanceState != null) {
 
-            mMovies = savedInstanceState.getParcelableArrayList("movieData");
-            mMovieAdapter = new MovieAdapter(mMovies, R.layout.item_movie, getApplicationContext(), mListener);
-            mRecyclerView.setAdapter(mMovieAdapter);
-            mMovieAdapter.swapList(mMovies);
+            if (getPreference().equals("popular") || getPreference().equals("top_rated")) {
+
+                mMovies = savedInstanceState.getParcelableArrayList("movieData");
+                mMovieAdapter = new MovieAdapter(mMovies, R.layout.item_movie, getApplicationContext(), mListener);
+                mRecyclerView.setAdapter(mMovieAdapter);
+                mMovieAdapter.swapList(mMovies);
+            } else {
+                mMovieAdapter = new MovieAdapter(mMovies, R.layout.item_movie, getApplicationContext(), mListener);
+                mRecyclerView.setAdapter(mMovieAdapter);
+                getSupportLoaderManager().restartLoader(MOVIE_LOADER_ID, null, this);
+            }
 
         } else {
-
             mMovies = new ArrayList<>();
             loadMovies("popular");
         }
-
 
     }
 
@@ -125,6 +128,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putParcelableArrayList("movieData", (ArrayList<? extends Parcelable>) mMovies);
+
     }
 
     public void loadMovies(String sortBy) {
@@ -185,7 +189,6 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
 
         }
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -269,8 +272,6 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
             intent.putExtra("MOVIE_URI", movieUri.toString());
             startActivity(intent);
         }
-
-
     }
 
     private void showErrorMessage() {
@@ -312,8 +313,6 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         //  mRecyclerView.smoothScrollToPosition(mPosition);
         if (data.getCount() != 0) showMovieDataView();
 
-        // mLoadingIndicator.setVisibility(View.GONE);
-
     }
 
     @Override
@@ -332,7 +331,6 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         mRecyclerView.setVisibility(View.VISIBLE);
     }
 
-
     @NonNull
     private String getPreference() {
         SharedPreferences shared = getSharedPreferences("sort", MODE_PRIVATE);
@@ -340,5 +338,4 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         Log.v("Main", "value is: " + pref);
         return pref;
     }
-
 }

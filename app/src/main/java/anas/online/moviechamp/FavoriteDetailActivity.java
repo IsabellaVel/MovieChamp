@@ -80,8 +80,6 @@ public class FavoriteDetailActivity extends AppCompatActivity implements VideoAd
 
         mMovieUri = Uri.parse(movieUriString);
 
-        //Log.v("TAG", mMovieUri.toString());
-
         title.setText(mMovieData.getTitle());
         plot.setText(mMovieData.getOverview());
         releaseDate.setText(mMovieData.getReleaseDate());
@@ -111,7 +109,6 @@ public class FavoriteDetailActivity extends AppCompatActivity implements VideoAd
                 removeFromFavorites();
             }
         });
-
     }
 
     private void removeFromFavorites() {
@@ -133,7 +130,6 @@ public class FavoriteDetailActivity extends AppCompatActivity implements VideoAd
             }
         }
     }
-
 
     public void loadTrailers() {
         Call<Video> call = apiService.getMovieVideos(mMovieId, BuildConfig.TMDB_API_KEY);
@@ -203,7 +199,6 @@ public class FavoriteDetailActivity extends AppCompatActivity implements VideoAd
         mVideosRecyclerView.setVisibility(View.GONE);
     }
 
-
     private boolean networkConnected() {
         // Get a reference to the ConnectivityManager to check state of network connectivity.
         ConnectivityManager connMgr = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -213,5 +208,4 @@ public class FavoriteDetailActivity extends AppCompatActivity implements VideoAd
         // If network is available then return true, else, false is returned
         return (networkStatus != null && networkStatus.isConnected());
     }
-
 }
