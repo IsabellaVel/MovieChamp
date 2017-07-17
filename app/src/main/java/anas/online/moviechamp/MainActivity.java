@@ -9,6 +9,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -24,8 +25,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import anas.online.moviechamp.data.MovieContract;
@@ -88,37 +89,44 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     private String mSortBy;
     private int mPosition = RecyclerView.NO_POSITION;
     private Cursor mCursor;
-    private String clickedItemType;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        clickedItemType = "popular";
+
+        if (savedInstanceState != null) {
+
+            mMovies = savedInstanceState.getParcelableArrayList("movieData");
+
+        } else {
+
+            mMovies = new ArrayList<>();
+        }
 
         SharedPreferences prefs = getSharedPreferences("sort", MODE_PRIVATE);
         editor = prefs.edit();
 
         ButterKnife.bind(this);
-        mLoadingIndicator.setVisibility(View.VISIBLE);
+
         mRecyclerView = (RecyclerView) findViewById(R.id.movies_recycler_view);
         setupGridLayout();
 
-        if (getPreference().equals("popular")) {
-            Toast.makeText(this, "popular", Toast.LENGTH_SHORT).show();
-        } else if (getPreference().equals("top_rated")) {
-            Toast.makeText(this, "top rated", Toast.LENGTH_SHORT).show();
-        } else Toast.makeText(this, "favorites", Toast.LENGTH_SHORT).show();
-
-
         loadMovies("popular");
 
+
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelableArrayList("movieData", (ArrayList<? extends Parcelable>) mMovies);
     }
 
     public void loadMovies(String sortBy) {
 
         if (sortBy.equals("popular")) {
-            clickedItemType = "popular";
+            mLoadingIndicator.setVisibility(View.VISIBLE);
             Call<MovieResponse> call = apiService.getPopularMovies(API_KEY);
 
             call.enqueue(new Callback<MovieResponse>() {
@@ -142,7 +150,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         }
 
         if (sortBy.equals("top_rated")) {
-            clickedItemType = "top_rated";
+            mLoadingIndicator.setVisibility(View.VISIBLE);
             Call<MovieResponse> call = apiService.getTopRatedMovies(API_KEY);
 
             call.enqueue(new Callback<MovieResponse>() {
@@ -153,6 +161,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
                     mMovieAdapter = new MovieAdapter(mMovies, R.layout.item_movie, getApplicationContext(), mListener);
                     mRecyclerView.setAdapter(mMovieAdapter);
                     mRecyclerView.setHasFixedSize(true);
+                    mLoadingIndicator.setVisibility(View.GONE);
                 }
 
                 @Override
@@ -164,12 +173,11 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         }
 
         if (sortBy.equals("favorites")) {
-            clickedItemType = "favorites";
+            mLoadingIndicator.setVisibility(View.VISIBLE);
             mMovieAdapter = new MovieAdapter(mMovies, R.layout.item_movie, getApplicationContext(), mListener);
             mRecyclerView.setAdapter(mMovieAdapter);
-
+            mLoadingIndicator.setVisibility(View.GONE);
             getSupportLoaderManager().initLoader(MOVIE_LOADER_ID, null, this);
-
 
         }
     }
@@ -192,6 +200,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
             case R.id.sort_by_top_rated:
                 editor.putString("sort_by", "top_rated");
                 editor.apply();
+
                 item.setChecked(true);
                 if (actionBar != null) {
                     actionBar.setTitle("Top Rated");
@@ -203,6 +212,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
             case R.id.sorty_by_popular:
                 editor.putString("sort_by", "popular");
                 editor.apply();
+
                 item.setChecked(true);
                 if (actionBar != null) {
                     actionBar.setTitle("Popular");

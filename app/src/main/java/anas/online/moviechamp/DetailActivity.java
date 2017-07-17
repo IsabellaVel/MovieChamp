@@ -107,6 +107,7 @@ public class DetailActivity extends AppCompatActivity implements VideoAdapter.Vi
         loadTrailers();
 
         fab_favorite.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View view) {
                 try {
