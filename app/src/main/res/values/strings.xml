@@ -13,4 +13,9 @@
     <string name="no_connection_error">No Interent connection!</string>
     <string name="no_reviews_message">Sorry! There are currently no reviews available for this movie!</string>
 
+    <string name="pref_popular">popular</string>
+
+    <string name="pref_order_by_key">order_by</string>
+    <string name="pref_order_by_default">popular</string>
+
 </resources>

@@ -2,10 +2,12 @@ package anas.online.moviechamp;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -20,6 +22,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.List;
 
@@ -32,18 +35,34 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+
 public class MainActivity extends AppCompatActivity implements MovieAdapter.MovieAdapterOnClickHandler,
         LoaderManager.LoaderCallbacks<Cursor> {
 
     public static final String[] FAVORITES_PROJECTION = {
-            MovieContract.FavoritesEntry.COLUMN_EXTERNAL_STORAGE_POSTER_PATH
+            MovieContract.FavoritesEntry.COLUMN_MOVIE_ID,
+            MovieContract.FavoritesEntry.COLUMN_TITLE,
+            MovieContract.FavoritesEntry.COLUMN_EXTERNAL_STORAGE_POSTER_PATH,
+            MovieContract.FavoritesEntry.COLUMN_OVERVIEW,
+            MovieContract.FavoritesEntry.COLUMN_RELEASE_DATE,
+            MovieContract.FavoritesEntry.COLUMN_EXTERNAL_STORAGE_BACKDROP_PATH,
+            MovieContract.FavoritesEntry.COLUMN_VOTE_AVERAGE
     };
     /*
     * We store the indices of the values in the array of Strings above to more quickly be able to
     * access the data from our query. If the order of the Strings above changes, these indices
     * must be adjusted to match the order of the Strings.
     */
-    public static final int INDEX_MOVIE_EXTERNAL_STORAGE_POSTER_PATH = 0;
+
+    public static final int INDEX_ID = 0;
+    public static final int INDEX_TITLE = 1;
+    public static final int INDEX_MOVIE_EXTERNAL_STORAGE_POSTER_PATH = 2;
+    public static final int INDEX_OVERVIEW = 3;
+    public static final int INDEX_RELEASE_DATE = 4;
+    public static final int INDEX_EXTERNAL_STORAGE_BACKDROP_PATH = 5;
+    public static final int INDEX_VOTE_AVERAGE = 6;
+
+
     private static final String BASE_URL = "http://api.themoviedb.org/3/";
     private final static String API_KEY = BuildConfig.TMDB_API_KEY;
     // This ID is for the cursor loader that loads favorites data from DB
@@ -56,6 +75,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     TextView mErrorMessageDisplay;
     @BindView(R.id.pb_loading_indicator)
     ProgressBar mLoadingIndicator;
+    SharedPreferences.Editor editor;
     private Call<Movie> call;
     private Movie movie;
     private List<Movie> mMovies;
@@ -64,28 +84,37 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     private String mSortBy;
     private int mPosition = RecyclerView.NO_POSITION;
     private Cursor mCursor;
+    private String clickedItemType;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        clickedItemType = "popular";
+
+        SharedPreferences prefs = getSharedPreferences("sort", MODE_PRIVATE);
+        editor = prefs.edit();
 
         ButterKnife.bind(this);
-
         mLoadingIndicator.setVisibility(View.VISIBLE);
         mRecyclerView = (RecyclerView) findViewById(R.id.movies_recycler_view);
-
         setupGridLayout();
 
-        loadMovies("popular");
+        if (getPreference().equals("popular")) {
+            Toast.makeText(this, "popular", Toast.LENGTH_SHORT).show();
+        } else if (getPreference().equals("top_rated")) {
+            Toast.makeText(this, "top rated", Toast.LENGTH_SHORT).show();
+        } else Toast.makeText(this, "favorites", Toast.LENGTH_SHORT).show();
 
+
+        loadMovies("popular");
 
     }
 
     public void loadMovies(String sortBy) {
 
         if (sortBy.equals("popular")) {
-
+            clickedItemType = "popular";
             Call<MovieResponse> call = apiService.getPopularMovies(API_KEY);
 
             call.enqueue(new Callback<MovieResponse>() {
@@ -109,6 +138,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         }
 
         if (sortBy.equals("top_rated")) {
+            clickedItemType = "top_rated";
             Call<MovieResponse> call = apiService.getTopRatedMovies(API_KEY);
 
             call.enqueue(new Callback<MovieResponse>() {
@@ -130,7 +160,13 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         }
 
         if (sortBy.equals("favorites")) {
+            clickedItemType = "favorites";
+            mMovieAdapter = new MovieAdapter(mMovies, R.layout.item_movie, getApplicationContext(), mListener);
+            mRecyclerView.setAdapter(mMovieAdapter);
+
             getSupportLoaderManager().initLoader(MOVIE_LOADER_ID, null, this);
+
+
         }
     }
 
@@ -150,16 +186,19 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         ActionBar actionBar = getSupportActionBar();
         switch (item.getItemId()) {
             case R.id.sort_by_top_rated:
+                editor.putString("sort_by", "top_rated");
+                editor.apply();
                 item.setChecked(true);
                 if (actionBar != null) {
                     actionBar.setTitle("Top Rated");
                 }
 
                 loadMovies("top_rated");
-
                 return true;
 
             case R.id.sorty_by_popular:
+                editor.putString("sort_by", "popular");
+                editor.apply();
                 item.setChecked(true);
                 if (actionBar != null) {
                     actionBar.setTitle("Popular");
@@ -169,6 +208,8 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
                 return true;
 
             case R.id.sort_by_favorites:
+                editor.putString("sort_by", "favorites");
+                editor.apply();
                 item.setChecked(true);
                 if (actionBar != null) {
                     actionBar.setTitle("Favorites");
@@ -191,11 +232,23 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     }
 
     @Override
-    public void onClick(Movie movie) {
+    public void onClick(Movie movie, int movieType) {
 
-        Intent movieDetailIntent = new Intent(MainActivity.this, DetailActivity.class);
-        movieDetailIntent.putExtra("EXTRA_MOVIE", movie);
-        startActivity(movieDetailIntent);
+        if (movieType == 1) {
+
+            Intent intent = new Intent(MainActivity.this, DetailActivity.class);
+
+            // Put the Parcelable Movie object into an intent
+            intent.putExtra("EXTRA_MOVIE", movie);
+            startActivity(intent);
+        } else {
+            Intent intent = new Intent(MainActivity.this, FavoriteDetailActivity.class);
+
+            // Put the Parcelable Movie object into an intent
+            intent.putExtra("EXTRA_MOVIE", movie);
+            startActivity(intent);
+        }
+
 
     }
 
@@ -257,4 +310,14 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         // Then, make sure the movie data is visible.
         mRecyclerView.setVisibility(View.VISIBLE);
     }
+
+
+    @NonNull
+    private String getPreference() {
+        SharedPreferences shared = getSharedPreferences("sort", MODE_PRIVATE);
+        String pref = (shared.getString("sort_by", ""));
+        Log.v("Main", "value is: " + pref);
+        return pref;
+    }
+
 }

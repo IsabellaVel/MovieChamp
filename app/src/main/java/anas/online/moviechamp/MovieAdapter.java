@@ -1,7 +1,9 @@
 package anas.online.moviechamp;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,24 +15,30 @@ import com.squareup.picasso.Picasso;
 import java.io.File;
 import java.util.List;
 
+import static anas.online.moviechamp.MainActivity.INDEX_EXTERNAL_STORAGE_BACKDROP_PATH;
+import static anas.online.moviechamp.MainActivity.INDEX_ID;
 import static anas.online.moviechamp.MainActivity.INDEX_MOVIE_EXTERNAL_STORAGE_POSTER_PATH;
+import static anas.online.moviechamp.MainActivity.INDEX_OVERVIEW;
+import static anas.online.moviechamp.MainActivity.INDEX_RELEASE_DATE;
+import static anas.online.moviechamp.MainActivity.INDEX_TITLE;
+import static anas.online.moviechamp.MainActivity.INDEX_VOTE_AVERAGE;
+import static android.content.Context.MODE_PRIVATE;
 
 class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapterViewHolder> {
 
+    private static final int MOVIE_TYPE_POPULAR_TOP_RATED = 1;
+    private static final int MOVIE_TYPE_FAV = 2;
     /* The context we use to utility methods, app resources and layout inflaters */
     private final Context mContext;
     private List<Movie> mMovies;
     private MovieAdapterOnClickHandler mClickHandler;
     private int mRowLayout;
-
     private Cursor mCursor;
-
     /*We need to load data from two different sources. We have two cases: We either load live data
     from the API for the Popular and Top Rated movies or we load data from the
     database (cursor) for the Favorites. This boolean is used to tell our adapter from which source does it have
     to load data*/
     private boolean mLoadfromCursor;
-
 
      /*
       * Below, we've defined an interface to handle clicks on items within this Adapter. In the
@@ -45,11 +53,6 @@ class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapterViewHol
         mContext = context;
         mRowLayout = rowLayout;
         mClickHandler = clickHandler;
-    }
-
-    public MovieAdapter(Context context, Cursor cursor) {
-        mContext = context;
-        mCursor = cursor;
     }
 
     @Override
@@ -118,11 +121,19 @@ class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapterViewHol
         return mCursor;
     }
 
+    @NonNull
+    private String getPreference() {
+        SharedPreferences shared = mContext.getSharedPreferences("sort", MODE_PRIVATE);
+        String pref = (shared.getString("sort_by", ""));
+        // Log.v("Main", "value is: " + pref);
+        return pref;
+    }
+
     /**
      * The interface that receives onClick messages.
      */
     public interface MovieAdapterOnClickHandler {
-        void onClick(Movie movie);
+        void onClick(Movie movie, int movieType);
     }
 
     /**
@@ -133,12 +144,13 @@ class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapterViewHol
     class MovieAdapterViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         final ImageView poster;
 
-        MovieAdapterViewHolder(View view) {
+        MovieAdapterViewHolder(final View view) {
             super(view);
 
             poster = (ImageView) view.findViewById(R.id.poster_image);
 
             view.setOnClickListener(this);
+
         }
 
         /**
@@ -150,11 +162,36 @@ class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapterViewHol
          */
         @Override
         public void onClick(View v) {
-            int adapterPosition = getAdapterPosition();
-            Movie movie = mMovies.get(adapterPosition);
-            mClickHandler.onClick(movie);
+
+            String orderBy = getPreference();
+
+            if (orderBy.equals("popular")) {
+                int adapterPosition = getAdapterPosition();
+                Movie movie = mMovies.get(adapterPosition);
+                mClickHandler.onClick(movie, MOVIE_TYPE_POPULAR_TOP_RATED);
+            } else if (orderBy.equals("top_rated")) {
+                int adapterPosition = getAdapterPosition();
+                Movie movie = mMovies.get(adapterPosition);
+                mClickHandler.onClick(movie, MOVIE_TYPE_POPULAR_TOP_RATED);
+            } else if (orderBy.equals("favorites")) {
+                int adapterPosition = getAdapterPosition();
+                mCursor.moveToPosition(adapterPosition);
+
+                int id = mCursor.getInt(INDEX_ID);
+                String title = mCursor.getString(INDEX_TITLE);
+                String poster = mCursor.getString(INDEX_MOVIE_EXTERNAL_STORAGE_POSTER_PATH);
+                String backdrop = mCursor.getString(INDEX_EXTERNAL_STORAGE_BACKDROP_PATH);
+                String releaseDate = mCursor.getString(INDEX_RELEASE_DATE);
+                double voteAverage = mCursor.getDouble(INDEX_VOTE_AVERAGE);
+                String overview = mCursor.getString(INDEX_OVERVIEW);
+
+                Movie movie = new Movie(id, title, poster, overview, releaseDate, backdrop, voteAverage);
+
+                mClickHandler.onClick(movie, MOVIE_TYPE_FAV);
+
+            }
+
         }
 
     }
-
 }

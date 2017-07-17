@@ -67,7 +67,6 @@ public class DetailActivity extends AppCompatActivity implements VideoAdapter.Vi
     TextView noReviewsMessage;
     String fullPosterPath;
     String fullBackdropPath;
-    String localImagePathString;
     private VideoAdapter.VideoAdapterOnClickHandler mListener = this;
     private List<Review> mReviews;
     private List<Video> mVideos;
@@ -134,7 +133,7 @@ public class DetailActivity extends AppCompatActivity implements VideoAdapter.Vi
         movieValues.put(MovieContract.FavoritesEntry.COLUMN_OVERVIEW, mMovieData.getOverview());
         movieValues.put(MovieContract.FavoritesEntry.COLUMN_POSTER_PATH, mMovieData.getPosterPath());
         movieValues.put(MovieContract.FavoritesEntry.COLUMN_EXTERNAL_STORAGE_POSTER_PATH, localPosterPath);
-        movieValues.put(MovieContract.FavoritesEntry.COLUMN_EXTERNAL_STORAGE_BACKDROP_PATH, fullBackdropPath);
+        movieValues.put(MovieContract.FavoritesEntry.COLUMN_EXTERNAL_STORAGE_BACKDROP_PATH, localBackdropPath);
         movieValues.put(MovieContract.FavoritesEntry.COLUMN_RELEASE_DATE, mMovieData.getReleaseDate());
         movieValues.put(MovieContract.FavoritesEntry.COLUMN_VOTE_AVERAGE, mMovieData.getVoteAverage());
 
